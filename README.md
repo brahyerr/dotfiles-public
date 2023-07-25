@@ -10,5 +10,5 @@ EWW:
 - To have the same icons I do, you need the *Cozette* (HiDpi version) font.
 
 Things are very messy, and I haven't bothered committing to cleaning it up yet because I'm still working on some stuff. Clone at your own risk. \
-I mean, nothing catastrophic will happen. Your eyes just might get cursed.
+I mean, nothing catastrophic will happen. Just that, your eyes just might get cursed.
 
