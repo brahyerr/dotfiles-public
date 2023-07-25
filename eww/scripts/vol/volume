@@ -1,0 +1,38 @@
+#!/usr/bin/env sh
+
+# per="$(pamixer --get-volume)"
+echo $(pamixer --get-volume) > $HOME/.cache/vol-num &
+per=$(cat $HOME/.cache/vol-num)
+muted="$(pamixer --get-volume-human)"
+
+slider() {
+
+# For some reason, the icon seems to be delayed by one tail
+
+if [ $muted = "muted" ]; then 
+  icon="婢"
+
+elif [ "$per" -gt "44" ]; then
+	icon="墳"
+elif [ "$per" -gt "15" ]; then
+	icon="奔"
+else
+  #echo 奄&& exit
+  icon="奄"
+fi
+echo "$icon" > $HOME/.cache/vol-slider-icon
+}
+
+up() {
+  echo "ﱛ" > $HOME/.cache/vol-delta-icon && eww open osd-volume-window && timeout 2s && eww close osd-volume-window && exit
+}
+
+down() {
+  echo "ﱜ" > $HOME/.cache/vol-delta-icon && eww open osd-volume-window && timeout 2s && eww close osd-volume-window && exit
+}
+
+
+slider &&
+[ "$1" = "up" ] && up && exit
+[ "$1" = "down" ] && down && exit
+

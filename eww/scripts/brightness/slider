@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+# echo $(brightnessctl -m -c backlight | awk -F, '{print substr($4, 0, length($4)-1)}' | tr -d '%') > $HOME/.cache/bri-slider && exit
+echo "$(brightnessctl get) / 2.55" | bc > $HOME/.cache/bri-slider && exit

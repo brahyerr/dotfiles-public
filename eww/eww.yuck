@@ -1,0 +1,451 @@
+(include "common.yuck")
+
+(defwidget logo-widget []
+  (eventbox   :onscroll "scripts/notifications {}"
+    (box    :class "logo"  
+            :orientation "v"
+            :halign "center" 
+            :valign "center"
+            :tooltip "Close window"
+      (button    :onclick "${eww} close $(eww windows | grep '^*p-' | tr -d '*')"
+                 :onrightclick "${eww} close $(eww windows | grep '^*p' | tr -d '*'); ${eww} open p-dropdown-window"    ;; In the future, toggle visibility by using a script
+                 :timeout "1000ms"
+                 ; :class "logo-text" ""
+                 :class "logo-text" ""
+                 ))))
+
+(defwidget workspaces []
+  (box    :space-evenly false :orientation "v" :valign "center" :spacing 16
+    (eventbox :onscroll "bash ~/.config/eww/scripts/change-active-workspace {} ${current_workspace}" :class "workspaces-box"
+      (box :space-evenly true :orientation "v" :valign "center" :spacing 8
+        (label :text "${workspaces}${current_workspace}" :visible false)
+        (for workspace in workspaces
+          (eventbox :onclick "hyprctl dispatch workspace ${workspace.id}"
+          (box :class "workspace-entry 
+                        ${workspace.id == current_workspace ? "current" : ""} 
+                        ${workspace.windows > 0 ? "occupied" : "empty"}"
+                    
+              (label :class "workspace-id 
+                            ${workspace.id == current_workspace ? "workspace-current-id" : ""} 
+                            ${workspace.windows > 0 ? "workspace-occupied-id" : "workspace-empty-id"}"
+                    :text "${workspace.id == current_workspace ? "◈" : "${workspace.windows > 0 ? "◆" : "◇"}" }")
+              )))))
+      (button   :class "workspace-id" 
+                :tooltip "Toggle scratchpad"
+                :onclick "hyprctl dispatch togglespecialworkspace" "⌀")))
+  
+
+;; Battery Widgets ;;
+(defvar battery-text false)
+(defwidget battery-widget []
+  (eventbox :onhover "${eww} update battery-text=true"
+            :onhoverlost "${eww} update battery-text=false"
+    (box
+      :class "bar-bottom battery-box"
+      :visible {EWW_BATTERY == "" ? false : true}
+      :orientation "v"
+      :space-evenly false
+      (revealer   :transition "slideup"
+                  :reveal battery-text
+                  :duration "400ms"
+        (box      :class "bar-bottom battery-text"
+                  :orientation "v"
+          (label  :halign "center"
+                  :valign "center"
+                  :text "${battery-capacity}%"
+            )
+          )
+        )
+      (label    :class "bar-bottom battery-label"
+                :halign "center"
+                :valign "center"
+                :text battery-icon))))
+
+;; Memory widget ;;
+(defvar mem-text false)
+; (deflisten mem-used "tail -F $HOME/.cache/mem-used")
+(defwidget mem-widget []
+  (eventbox   :onhover "${eww} update mem-text=true"
+              :onhoverlost "${eww} update mem-text=false"
+    (box    :class "bar-bottom mem-box"
+            :orientation "v"
+            :space-evenly false
+      (revealer   :transition "slideup"
+                  :reveal mem-text
+                  :duration "400ms"
+        (box      :class "bar-bottom battery-text"
+                  :orientation "v"
+          (label    :halign "center"
+                    :valign "center"
+                    :text "${mem-used}")))
+      (label    :class "bar-bottom mem-label"
+                :halign "center"
+                :valign "center"
+                :text ""))))
+
+;; Wifi Widgets ;;
+(defwidget wifi-widget []
+	(box		:orientation "v" 
+          :class "wifi-box"
+				:tooltip wifi-name
+	(button		:onclick "scripts/popup wifi" 
+				:class "bar-bottom wifi-icon" wifi-icon)))
+
+;; Brightness Widgets ;;
+(defvar bright-slider false)
+(defwidget brightness-widget []
+  (eventbox :onhover "scripts/brightness/slider & ${eww} update bright-slider=true & scripts/brightness/slider"
+  			:onhoverlost "scripts/brightness/slider & ${eww} update bright-slider=false & scripts/brightness/slider"
+  			(box    :class "bar-bottom brightness-box"
+            :orientation "v"  
+			  		:space-evenly "false"  
+					:spacing 2
+  			(revealer :transition "slideup" 
+			  		  :reveal bright-slider
+					  :duration "550ms"
+  			(scale :class "bribar" 
+			  	   :value current-brightness 
+				   :tooltip "Brightness: ${current-brightness}%" 
+				   :onchange "scripts/brightness/slider & brightnessctl set {}% && scripts/brightness/slider"
+				   :orientation "v"
+				   :flipped true 
+				   :max 101 
+				   :min 0)
+          )
+  			(label  :class "bar-bottom brightness-icon" 
+			  	      :text bri-icon))))
+
+;; Volume Widgets ;;
+; (defpoll volume-icon       :interval "1s" "scripts/volume icon")
+(defwidget volume-widget []
+	(eventbox :onhover "scripts/vol/volume & ${eww} update volume-slider=true & scripts/vol/volume"
+			  :onhoverlost "scripts/vol/volume & ${eww} update volume-slider=false & scripts/vol/volume"
+    (box  :class "bar-bottom volume-box"
+          :orientation "v"
+          :space-evenly "false" 
+          :spacing "2"
+      (revealer    :transition "slideup" 
+                   :reveal volume-slider
+                   :duration "550ms"
+        (scale    :class "volbar" 	  
+                  :value current-volume :orientation "v"      
+                  :flipped true 
+                  :tooltip "Volume: ${current-volume}%" 
+                  :max 101 
+                  :min 0 
+                  :onchange "scripts/vol/volume & pamixer --set-volume {} & scripts/vol/volume"))
+    (button   :onclick "scripts/popup audio"  
+              :onrightclick "scripts/vol/volume && pamixer --toggle-mute && scripts/vol/volume"
+              :class "bar-bottom volume-icon" ;; ""
+      (label :text volume-icon)))))
+
+(defvar volume-slider false)
+
+;; Calendar Widget ;;
+(defvar date-visible false)
+(defwidget calendar-widget []
+  (calendar
+    :class "calendar-widget bar"
+    :onclick "trutrue"
+    :day "${today}"
+    )
+  )
+
+;; Time Widget ;;
+(defvar time-visible true)
+;; (defpoll hour :interval "6s" :initial "12" :run-while time-visible "date +%I:%M:%p | awk -F':' '{print $1}'")
+;; (defpoll minute :interval "6s" :initial "00" :run-while time-visible "date +%I:%M:%p | awk -F':' '{print $2}'")
+;; (defpoll ampm :interval "6s" :initial "AM" :run-while time-visible "date +%I:%M:%p | awk -F':' '{print $3}'")
+(defwidget time-widget []
+  (eventbox :onhover "scripts/datetime/date"
+  (box :class "bar-bottom time" :orientation "v"
+       :valign "start"
+    (label :text "--" :style "color: #565F89;")
+    (label :text "${time}" :tooltip "${date}")
+    ;; (label :text "${ampm}")
+    (label :text "--" :style "color: #565F89;")
+    )
+  ))
+
+;; Powermenu Widgets ;;
+(defwidget power-widget []
+	(eventbox	:onhover "${eww} update power=true"	
+				:onhoverlost "${eww} update power=false" 
+	(box		:orientation "v"					
+				:space-evenly "false" 	 
+				:vexpand "false" 	
+				:class "powermenu"
+    (revealer	:transition "slideup"				
+          :reveal power			 
+          :duration "550ms"
+      (box		:orientation "v"					
+            :space-evenly "true"
+
+        (button   :class "button-group button-wmrestart"  			
+                  :tooltip "Restart ${wm}" 
+                  :onclick "${eww} close $(eww windows | grep '^*p' | tr -d '*');${eww} update power-option='wmrestart' && ${eww} update prompt=true && ${eww} open p-prompt-window" "⌀" )
+
+        (button		:class "button-group button-reboot"
+                  :tooltip "Reboot"		 
+                  :onclick "${eww} close $(eww windows | grep '^*p' | tr -d '*');${eww} update power-option='reboot' && ${eww} update prompt=true && ${eww} open p-prompt-window"	"↺")
+
+        (button		:class "button-group button-quit"
+                  :tooltip "Logout" 		 
+                  :onclick "${eww} close $(eww windows | grep '^*p' | tr -d '*');${eww} update power-option='logout' && ${eww} update prompt=true && ${eww} open p-prompt-window" "")
+
+        (button		:class "button-group button-lock"
+                  :tooltip "Suspend"	 
+                  :onclick "${eww} close $(eww windows | grep '^*p' | tr -d '*');${eww} update power-option='suspend' && ${eww} update prompt=true && ${eww} open p-prompt-window"	"")))
+
+	(button		:class "bar-bottom button-off"
+    				:tooltip "Shutdown"
+	    			:onclick "${eww} close $(eww windows | grep '^*p' | tr -d '*');${eww} update power-option='off' && ${eww} update prompt=true && ${eww} open p-prompt-window" "⏻"))))
+(defvar power false)
+
+;;;;;;;;;;;; Popup widgets ;;;;;;;;;;;;
+
+;; Appmenu widget ;;
+
+(defwidget app-widget []
+  (box    :class "appmenu"
+          :valign "center"
+    (label    :class "appmenu-label"
+              :text "Placeholder text.")))
+
+(defwidget p-dropdown-widget []
+  (box    :class "box dropdown"
+          :orientation "h"
+          :halign "center"
+          :space-evenly false
+    (button   :class "btn dropdown"
+              :onclick "${eww} close $(eww windows | grep '^*p' | tr -d '*'); hyprctl dispatch killactive"
+      (label    :text "✖"))
+    (box    :class "label dropdown"
+            :orientation "h"
+            :halign "center"
+      (label    :text "Close focused window"))))
+
+;; Popup brightness OSD widget
+(defwidget osd-brightness-widget []
+  (box    :class "osd bri-box"
+          :halign "center"
+          :valign "center"
+    (osd-progress-widget    :orientation "h"
+                          :icon-class "osd bri-icon"
+                          :scale-class "bribar-h"
+                          :value current-brightness
+                          :tooltip "${current-brightness}%" 
+                          :icon bri-icon)))
+
+
+;; Popup volume OSDwidget ;;
+(defwidget osd-volume-widget []
+  (box    :class "osd volume-box"
+          :halign "center"
+          :valign "center"
+    (osd-progress-widget    :orientation "h"
+                          :icon-class "osd volume-icon"
+                          :scale-class "volbar-h"
+                          :value current-volume
+                          :tooltip "${current-volume}%" 
+                          :icon vol-delta-icon)))
+
+;; Popup progress bar widget ;;
+
+(defwidget osd-progress-widget [orientation icon-class scale-class value tooltip icon]      ;; Make this a reusable widget for volume/brightness slider
+  (box    :orientation orientation
+          :class scale-class
+          :halign "center"
+          :valign "center"
+          :space-evenly false
+          :spacing 4
+    (label    :class icon-class
+              :text icon)
+    (scale    :min 0
+              :max 101
+              ; :onchange "pamixer --get-volume {}"    ; not needed as volume is obtained from keybind calling script
+              :orientation orientation
+              :value value
+              :tooltip tooltip
+              :active false)))
+
+;; Confirm prompt widget ;;
+(defvar prompt false)
+(defwidget p-prompt-widget [power-option]
+    (box    :class "prompt"
+            :orientation "v"
+            :hexpand "true"
+            :space-evenly "false"
+            :spacing 32
+        (spacer-1rem)
+
+      (box
+            :orientation "v"
+            :space-evenly "false"
+            :spacing 4
+        (label    :class "prompt text"
+                  :text "Are you sure you want to")
+        (label    :class "prompt text"
+                  :text "${power-option=='off' ? 'power off the computer?' : 
+                                                                  power-option=='suspend' ? "suspend the computer?" : 
+                                                                  power-option=='logout' ? "logout?" :
+                                                                  power-option=='reboot' ? "reboot the computer?" :
+                                                                  power-option=='wmrestart' ? "reload ${wm}?" : "know how you got here?" }"))
+    (revealer
+          :transition "crossfade"
+          :duration "550ms"
+          :reveal true
+      (box    :orientation "h" 
+              :halign "center"
+              :space-evenly false
+              :spacing 24
+        (button     :class "prompt btn confirm"
+                    :onclick " ${eww} update prompt=false; ${eww} close p-prompt-window & scripts/prompt ${power-option}"
+          (label      :text "Yes"))
+        (button     :class "prompt btn cancel"
+                    :onclick "${eww} update prompt=false; ${eww} close $(eww windows | grep '^*p' | tr -d '*')"
+          (label      :text "NO!"))
+        ))))
+
+;; Top box widget ;;
+(defwidget top-widget []
+  (box :orientation "v" :space-evenly false :valign "start" :spacing 12
+    (logo-widget)
+    (workspaces)
+    )
+  )
+
+;; Bottom box widget ;;
+(defwidget bottom-widget []
+  (box :orientation "v" :space-evenly false :valign "end" :spacing 2
+    (mem-widget)
+    (battery-widget)
+    (wifi-widget)
+    (brightness-widget)
+    (volume-widget)
+    (time-widget)
+    (power-widget)
+    )
+  )
+
+;; Bar Widget ;;
+(defwidget bar-widget []
+  (box :orientation "v" :spacing 0 :space-evenly true
+    (top-widget)
+    (bottom-widget)
+    )
+  )
+
+;;;;;;;;;;;; Windows ;;;;;;;;;;;;
+
+;; NOTE: `p-` prefix means popup
+
+;; Common window settings ;;
+;; (defwidget window-common [?anchor]
+;;            :monitor 0
+;;            :class "popups calendar-window"
+;;            :windowtype "normal"
+;;            :wm-ignore false
+;;            :stacking "overlay"
+;;            :exclusive false
+;;            :geometry (geometry :x "16px"
+;;                                :y "16px"
+;;                                :anchor {anchor ?: "left bottom"}))
+
+;; Calendar Window (unfinished) ;;
+
+(defwindow p-calendar-window
+           :monitor 0
+           :class "popups calendar-window"
+           :stacking "overlay"
+           :exclusive false
+           :geometry (geometry :x "16px"
+                               :y "16px"
+                               :anchor "left bottom")
+  (calendar-widget))
+
+;; App menu window ;;
+(defwindow p-app-window
+           :monitor 0
+           :class "popups appmenu-window"
+           :stacking "overlay"
+           :exclusive false
+           :geometry (geometry :x "1642px"
+                               :y "16px"
+                               :width "108px"
+                               :height "160px"
+                               :anchor "right top")
+  (app-widget))
+
+;; Window management dropdown window ;;
+(defwindow p-dropdown-window
+           :monitor 0
+           :class "popups appmenu-window"
+           :exclusive false
+           :stacking "overlay"
+           :geometry (geometry :x "16px"
+                               :y "16px"
+                               :width "0px"
+                               :height "0px"
+                               :anchor "top right")
+  (p-dropdown-widget))
+
+;; OSD brightness window ;;
+(defwindow osd-brightness-window
+           :monitor 0
+           :class "osd appmenu-window"
+           :stacking "overlay"
+           :exclusive false
+           :geometry (geometry :x 0
+                               :y 160
+                               :width 0
+                               :height 0
+                               :anchor "center bottom")
+  (osd-brightness-widget))
+
+;; OSD volume window ;;
+(defwindow osd-volume-window
+           :monitor 0
+           :class "osd appmenu-window"
+           :stacking "overlay"
+           :exclusive false
+           :geometry (geometry :x 0
+                               :y 160
+                               :width 0
+                               :height 0
+                               :anchor "center bottom")
+  (osd-volume-widget))
+
+;; Popup prompt window ;;
+
+(defwindow p-prompt-window
+           :monitor 0
+           :class "popups prompt-window"
+           :windowtype "normal"
+           :wm-ignore false
+           :stacking "overlay"
+           :exclusive false
+           :geometry (geometry :x "1642px"
+                               :y "16px"
+                               :width "108px"
+                               :height "160px"
+                               :anchor "left bottom")
+  (p-prompt-widget :power-option power-option))
+
+;; Bar Window ;;
+(defwindow bar-window
+           :monitor 0
+           :class "bar-window"
+           :windowtype "dock"
+           :stacking "fg"
+           :exclusive true
+           ;; :style "border-color: #ffffff"
+           :geometry (geometry :x "6px"
+                               :y "0%"
+                               :width "24px"
+                               :height "1068px"
+                               :anchor "right center"
+                       )
+  (bar-widget)
+  )
+

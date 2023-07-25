@@ -1,0 +1,13 @@
+#!/usr/bin/env sh
+
+symbol() {
+[ $(cat /sys/class/net/w[^g]*/operstate) = down ] && echo 睊 && exit
+echo 直
+}
+
+name() {
+nmcli | grep "^wl" | sed 's/\ connected\ to\ /Connected to /g' | cut -d ':' -f2
+}
+
+[ "$1" = "icon" ] && symbol && exit
+[ "$1" = "name" ] && name && exit

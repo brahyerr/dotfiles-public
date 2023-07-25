@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+
+# echo $(pamixer --get-volume) > $HOME/.cache/vol-num && exit
+timer_pid=$(pgrep -f "vol-osd-timer")
+
+delta() {
+  [ "$1" = "up" ] && echo "ﱛ" > $HOME/.cache/vol-delta-icon
+  [ "$1" = "down" ] && echo "ﱜ" > $HOME/.cache/vol-delta-icon
+
+  eww close osd-brightness-window
+  eww open osd-volume-window
+}
+
+# delta $1 &&
+
+if [ "$timer_pid" = "" ]; then
+  ~/.config/eww/scripts/vol/vol-osd-timer
+else
+  kill -SIGUSR1 "$timer_pid"
+fi
+
+exit

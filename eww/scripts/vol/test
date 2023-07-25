@@ -1,0 +1,45 @@
+
+window() {
+  # Define the maximum sleep duration in seconds
+  max_sleep_duration=10
+
+  # Define the keys that can extend the sleep duration
+  extend_keys=("a" "b" "c")
+
+  # Initialize the sleep duration
+  sleep_duration=5
+
+  # Start the initial sleep
+  sleep $sleep_duration
+
+  # Loop to extend the sleep duration if certain keys are pressed
+  while true; do
+    echo "Press any key within $sleep_duration seconds to extend the sleep duration (up to $max_sleep_duration seconds)."
+    
+    # Read a single character with timeout
+    read -t $sleep_duration -n 1 key
+    
+    # Check if the read command timed out
+    if [[ $? -eq 0 ]]; then
+      # Key was pressed, check if it is an extend key
+      if [[ "${extend_keys[*]}" =~ $key ]]; then
+        # Extend the sleep duration
+        sleep_duration=$((sleep_duration + 5))
+        
+        # Check if the sleep duration exceeds the maximum
+        if [[ $sleep_duration -gt $max_sleep_duration ]]; then
+          sleep_duration=$max_sleep_duration
+        fi
+        
+        echo "Sleep duration extended to $sleep_duration seconds."
+        sleep $sleep_duration
+      fi
+    else
+      # Read command timed out, break out of the loop
+      break
+    fi
+  done
+
+  echo "Sleep completed."
+}
+

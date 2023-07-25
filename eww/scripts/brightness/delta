@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+
+# echo $(pamixer --get-volume) > $HOME/.cache/vol-num && exit
+timer_pid=$(pgrep -f "bri-osd-timer")
+
+delta() {
+  eww close osd-volume-window
+  eww open osd-brightness-window
+}
+
+delta &&
+
+if [ "$timer_pid" = "" ]; then
+  ~/.config/eww/scripts/brightness/bri-osd-timer
+else
+  kill -SIGUSR1 "$timer_pid"
+fi
+
+exit

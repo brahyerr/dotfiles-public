@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+
+count=2
+
+reset_timer() {
+  count=3
+}
+
+# Set up the signal handler
+trap 'reset_timer' SIGUSR1
+
+# Timer loop
+while [ "$count" -gt 0 ]; do
+  echo $count && sleep 1 && count=$((count - 1))
+done
+
+eww close osd-volume-window
+

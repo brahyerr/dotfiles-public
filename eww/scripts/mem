@@ -1,0 +1,5 @@
+#!/usr/bin/env sh
+
+used="$(free -m | awk 'NR==2 {print $3}')\n  MB"
+# echo $used > $HOME/.cache/mem-used && exit
+echo $used && exit

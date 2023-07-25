@@ -1,0 +1,5 @@
+#!/usr/bin/env sh
+
+#tofi-drun --drun-launch true --terminal wezterm; exit  
+pavucontrol
+

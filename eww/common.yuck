@@ -1,0 +1,89 @@
+(defvar eww "eww -c $HOME/.config/eww/")
+
+(deflisten workspaces :initial "[]" "bash ~/.config/eww/scripts/get-workspaces")
+(deflisten current_workspace :initial "1" "bash ~/.config/eww/scripts/get-active-workspace")
+(deflisten current-brightness :intital "scripts/brightness/slider" "tail -F $HOME/.cache/bri-slider")
+(deflisten volume-icon :initial "奄" 'tail -F $HOME/.cache/vol-slider-icon')
+(deflisten current-volume :initial "cat $HOME/.cache/vol-num" "tail -f $HOME/.cache/vol-num")
+(deflisten date "tail -f $HOME/.cache/date")
+(deflisten vol-delta-icon "tail -F $HOME/.cache/vol-delta-icon")
+
+(defvar bri-icon "⚙")
+(defvar wm "Hyprland")
+(defvar power-option "foo")
+
+; (deflisten mem-used "tail -F $HOME/.cache/mem-used")
+(defpoll mem-used :interval "5s" "scripts/mem")
+(defpoll battery-icon       :interval "4s" "scripts/battery icon")
+(defpoll battery-capacity   :interval "4s" "scripts/battery percent")
+(defpoll wifi-icon :interval "3s" "scripts/wifi icon")
+(defpoll wifi-name :interval "3s" "scripts/wifi name")
+; (defpoll volume-icon       :interval "1s" "scripts/volume icon")
+(defpoll today :interval "1h" :initial "1" :run-while date-visible "date +'%e'")
+(defpoll time :interval "5s" :initial "12" :run-while time-visible "date +%I%n%M")
+; (defpoll hour :interval "6s" :initial "12" :run-while time-visible "date +%I:%M:%p | awk -F':' '{print $1}'")
+; (defpoll minute :interval "6s" :initial "00" :run-while time-visible "date +%I:%M:%p | awk -F':' '{print $2}'")
+; (defpoll ampm :interval "6s" :initial "AM" :run-while time-visible "date +%I:%M:%p | awk -F':' '{print $3}'")
+
+;;;;;; Spacers ;;;;;;
+
+(defwidget spacer-200px []
+  (box :class "spacer-200px-v")
+  )
+
+(defwidget spacer-150px []
+  (box :class "spacer-150px-v")
+  )
+
+(defwidget spacer-100px []
+  (box :class "spacer-100px-v")
+  )
+
+(defwidget spacer-10px []
+  (box :class "spacer-10px-v")
+  )
+
+(defwidget spacer-8rem []
+  (box :class "spacer-8rem-v")
+  )
+
+(defwidget spacer-15rem []
+  (box :class "spacer-15rem-v")
+  )
+
+(defwidget spacer-10rem []
+  (box :class "spacer-10rem-v")
+  )
+
+(defwidget spacer-8rem []
+  (box :class "spacer-8rem-v")
+  )
+
+(defwidget spacer-7rem []
+  (box :class "spacer-7rem-v")
+  )
+
+(defwidget spacer-6rem []
+  (box :class "spacer-6rem-v")
+  )
+
+(defwidget spacer-5rem []
+  (box :class "spacer-5rem-v")
+  )
+
+(defwidget spacer-4rem []
+  (box :class "spacer-4rem-v")
+  )
+
+(defwidget spacer-3rem []
+  (box :class "spacer-3rem-v")
+  )
+
+(defwidget spacer-2rem []
+  (box :class "spacer-2rem-v")
+  )
+
+(defwidget spacer-1rem []
+  (box :class "spacer-1rem-v")
+  )
+
